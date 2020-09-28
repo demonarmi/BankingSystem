@@ -1,3 +1,4 @@
+
 import java.util.Random;
 import java.util.Scanner;
 
@@ -8,6 +9,8 @@ public class Bank {
     String typedPin;
     String typedCardNumber;
     String cardNumber;
+    int balance = 0;
+
 
     private void setUserPin(String pin) {
         this.typedPin = pin;
@@ -68,9 +71,12 @@ public class Bank {
 
 
     void generatePinCode(Bank bank) {
-        Random random = new Random();
+        //Random random = new Random();
         System.out.println("Your card PIN:");
-        int generatedPIN = random.nextInt(9999);
+        int min = 0000;
+        int max = 9999;
+        int random_int = (int) (Math.random() * (max - min + 1) + min);
+        int generatedPIN = random_int;
         PIN = String.format("%04d", generatedPIN);
     }
 
@@ -80,9 +86,10 @@ public class Bank {
         System.out.println("Your card number:");
         System.out.println(cardNumber);
         bank.generatePinCode(bank);
-
         System.out.println(PIN);
         System.out.println();
+        String sql = "INSERT INTO cards (number,pin,balance) VALUES(" + bank.cardNumber + "," + bank.PIN + "," + bank.balance + ")";
+        JDBCConnector.insert(sql);
     }
 
     void validatePIN(Bank bank) {
@@ -99,7 +106,7 @@ public class Bank {
     }
 
     void checkBalance(Bank bank) {
-        System.out.println("Balance: 0");
+        System.out.println("Balance: " + balance);
         System.out.println();
     }
 
