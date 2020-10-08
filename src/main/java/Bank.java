@@ -2,7 +2,7 @@
 import java.util.Random;
 import java.util.Scanner;
 
-public class Bank {
+public class Bank extends JDBCConnector{
     final Scanner scanner = new Scanner(System.in);
     String menuAction;
     String PIN;
@@ -12,11 +12,11 @@ public class Bank {
     int balance = 0;
 
 
-    private void setUserPin(String pin) {
+    private void setTypedPin(String pin) {
         this.typedPin = pin;
     }
 
-    private void setUserCard(String card) {
+    private void setTypedCardNumber(String card) {
         this.typedCardNumber = card;
     }
 
@@ -37,7 +37,7 @@ public class Bank {
         long min = 100000000L;
         long max = 999999999L;
         long random_long = (long) (Math.random() * (max - min + 1) + min);
-        String cardNumberToCheck = "" + IIN + random_long; //was string and at start "" + inn + ...
+        String cardNumberToCheck = "" + IIN + random_long;
         int checksum = 0;
 
 
@@ -69,9 +69,7 @@ public class Bank {
         bank.cardNumber = finalCardNumber;
     }
 
-
     void generatePinCode(Bank bank) {
-        //Random random = new Random();
         System.out.println("Your card PIN:");
         int min = 0000;
         int max = 9999;
@@ -80,7 +78,7 @@ public class Bank {
         PIN = String.format("%04d", generatedPIN);
     }
 
-    void createAccount(Bank bank) {
+    void createAccount(Bank bank, String url) {
         bank.generateCardNumber(bank);
         System.out.println("Your card has been created");
         System.out.println("Your card number:");
@@ -89,28 +87,28 @@ public class Bank {
         System.out.println(PIN);
         System.out.println();
         String sql = "INSERT INTO cards (number,pin,balance) VALUES(" + bank.cardNumber + "," + bank.PIN + "," + bank.balance + ")";
-        JDBCConnector.insert(sql);
+        JDBCConnector.insert(sql, url);
     }
 
     void validatePIN(Bank bank) {
         System.out.println("Enter your PIN:");
         String typedPIN = scanner.nextLine();
-        bank.setUserPin(typedPIN);
+        bank.setTypedPin(typedPIN);
         System.out.println();
     }
 
     void validateCard(Bank bank) {
         System.out.println("Enter your card number:");
         String typedCardNumber = scanner.nextLine();
-        bank.setUserCard(typedCardNumber);
+        bank.setTypedCardNumber(typedCardNumber);
     }
 
-    void checkBalance(Bank bank) {
+    void checkBalance() {
         System.out.println("Balance: " + balance);
         System.out.println();
     }
 
-    void logOut(Bank bank) {
+    void logOut() {
         System.out.println("You have successfully logged out!");
         System.out.println();
     }

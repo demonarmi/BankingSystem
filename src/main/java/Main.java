@@ -3,8 +3,9 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        JDBCConnector.connect();
-        JDBCConnector.createTable();
+        String url = "jdbc:sqlite:" + args[1];
+        JDBCConnector.connect(url);
+        JDBCConnector.createTable(url);
 
         final Scanner scanner = new Scanner(System.in);
         Bank bank = new Bank();
@@ -12,7 +13,7 @@ public class Main {
         do {
             switch (bank.menuAction) {
                 case "1":
-                    bank.createAccount(bank);
+                    bank.createAccount(bank, url);
                     bank.mainMenuCommands(bank);
                     break;
                 case "2":
@@ -29,10 +30,10 @@ public class Main {
                             nextAction = scanner.nextInt();
                             if (nextAction == 1) {
                                 System.out.println();
-                                bank.checkBalance(bank);
+                                bank.checkBalance();
                             } else if (nextAction == 2) {
                                 System.out.println();
-                                bank.logOut(bank);
+                                bank.logOut();
                                 bank.mainMenuCommands(bank);
                                 break;
                             } else if (nextAction == 0) {

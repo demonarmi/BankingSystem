@@ -1,19 +1,14 @@
-import org.sqlite.SQLiteDataSource;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.DriverManager;
 import java.sql.Statement;
 
-public class JDBCConnector {
-    private static String url = "jdbc:sqlite:src/BankingSystem.db";
+public class JDBCConnector extends Main{
 
-    public static void connect() {
+    public static void connect(String url) {
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url);
-            System.out.println("Connection established");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -27,7 +22,7 @@ public class JDBCConnector {
         }
     }
 
-    public static void createTable() {
+    public static void createTable(String url) {
         String sql = "CREATE TABLE IF NOT EXISTS cards( " +
                 "id INTEGER PRIMARY KEY," +
                 "number TEXT," +
@@ -41,7 +36,7 @@ public class JDBCConnector {
         }
     }
 
-    public static void insert(String sql){
+    public static void insert(String sql, String url){
         try (Connection conn = DriverManager.getConnection(url);
         Statement stmt = conn.createStatement()) {
             stmt.executeUpdate(sql);
