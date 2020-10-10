@@ -2,21 +2,19 @@
 import java.util.Random;
 import java.util.Scanner;
 
-public class Bank extends JDBCConnector{
+public class Bank extends JDBCConnector {
     final Scanner scanner = new Scanner(System.in);
     String menuAction;
-    String PIN;
     String typedPin;
     String typedCardNumber;
-    String cardNumber;
-    int balance = 0;
+    double balance = 0;
 
 
-    private void setTypedPin(String pin) {
+    void setTypedPin(String pin) {
         this.typedPin = pin;
     }
 
-    private void setTypedCardNumber(String card) {
+    void setTypedCardNumber(String card) {
         this.typedCardNumber = card;
     }
 
@@ -32,75 +30,51 @@ public class Bank extends JDBCConnector{
         System.out.println();
     }
 
-    void generateCardNumber(Bank bank) {
-        long IIN = 400000;
-        long min = 100000000L;
-        long max = 999999999L;
-        long random_long = (long) (Math.random() * (max - min + 1) + min);
-        String cardNumberToCheck = "" + IIN + random_long;
-        int checksum = 0;
+    static boolean checkLuhn(String cardNo) {
+        int nDigits = cardNo.length();
 
+        int nSum = 0;
+        boolean isSecond = false;
+        for (int i = nDigits - 1; i >= 0; i--) {
 
-        int[] intArr = new int[cardNumberToCheck.length()];
-        for (int i = 0; i < cardNumberToCheck.length(); i++) {
-            intArr[i] = Integer.parseInt(cardNumberToCheck.substring(i, i+1));
+            int d = cardNo.charAt(i) - '0';
+
+            if (isSecond == true)
+                d = d * 2;
+
+            // We add two digits to handle
+            // cases that make two digits
+            // after doubling
+            nSum += d / 10;
+            nSum += d % 10;
+
+            isSecond = !isSecond;
         }
-        for (int i = intArr.length - 1; i >= 0; i = i - 2){
-            int j = intArr[i];
-            j = j * 2;
-
-            if (j > 9) {
-                j = j % 10 + 1;
-            }
-            intArr[i] = j;
-        }
-
-        int sum = 0;
-        for (int i = 0; i < intArr.length; i++) {
-            sum += intArr[i];
-        }
-
-        if (sum % 10 != 0) {
-            checksum = (10 - sum % 10) % 10;
-        } else {
-            checksum = 0;
-        }
-        String finalCardNumber = cardNumberToCheck + checksum;
-        bank.cardNumber = finalCardNumber;
+        return (nSum % 10 == 0);
     }
 
-    void generatePinCode(Bank bank) {
-        System.out.println("Your card PIN:");
-        int min = 0000;
-        int max = 9999;
-        int random_int = (int) (Math.random() * (max - min + 1) + min);
-        int generatedPIN = random_int;
-        PIN = String.format("%04d", generatedPIN);
-    }
-
-    void createAccount(Bank bank, String url) {
-        bank.generateCardNumber(bank);
+    void createAccount(Account acc, String url) {
+        acc.generateCardNumber(acc);
         System.out.println("Your card has been created");
         System.out.println("Your card number:");
-        System.out.println(cardNumber);
-        bank.generatePinCode(bank);
-        System.out.println(PIN);
+        System.out.println(acc.cardNumber);
+        acc.generatePinCode(acc);
+        System.out.println(acc.PIN);
         System.out.println();
-        String sql = "INSERT INTO cards (number,pin,balance) VALUES(" + bank.cardNumber + "," + bank.PIN + "," + bank.balance + ")";
+        String sql = "INSERT INTO cards (number,pin,balance) VALUES(" + acc.cardNumber + "," + acc.PIN + "," + acc.balance + ")";
         JDBCConnector.insert(sql, url);
     }
 
-    void validatePIN(Bank bank) {
+    void validatePIN(Account acc) {
         System.out.println("Enter your PIN:");
         String typedPIN = scanner.nextLine();
-        bank.setTypedPin(typedPIN);
-        System.out.println();
+        acc.setTypedPin(typedPIN);
     }
 
-    void validateCard(Bank bank) {
+    void validateCard(Account acc) {
         System.out.println("Enter your card number:");
         String typedCardNumber = scanner.nextLine();
-        bank.setTypedCardNumber(typedCardNumber);
+        acc.setTypedCardNumber(typedCardNumber);
     }
 
     void checkBalance() {
@@ -113,7 +87,7 @@ public class Bank extends JDBCConnector{
         System.out.println();
     }
 
-    void exit(Bank bank) {
+    void exit() {
         System.out.println("Bye!");
         System.exit(0);
     }

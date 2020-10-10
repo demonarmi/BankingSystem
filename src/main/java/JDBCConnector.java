@@ -36,6 +36,15 @@ public class JDBCConnector extends Main{
         }
     }
 
+    public static void executeStatement(String sql, String url){
+        try (Connection conn = DriverManager.getConnection(url);
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(sql);
+        } catch (SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+    }
+
     public static void insert(String sql, String url){
         try (Connection conn = DriverManager.getConnection(url);
         Statement stmt = conn.createStatement()) {
