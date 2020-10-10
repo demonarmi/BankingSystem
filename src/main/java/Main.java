@@ -1,8 +1,10 @@
 
+import javax.swing.plaf.nimbus.State;
+import java.sql.*;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         String url = "jdbc:sqlite:" + args[1];
         JDBCConnector.connect(url);
         JDBCConnector.createTable(url);
@@ -43,9 +45,12 @@ public class Main {
                             } else if (nextAction == 0) {
                                 bank.exit();
                             } else if (nextAction == 3) {
-                                acc.transferMoney(acc);
+                                acc.transferMoney(acc, url);
                             } else if (nextAction == 4) {
-                                System.out.println("Action = 4");
+                                acc.closeAccount(acc, url);
+                                System.out.println();
+                                System.out.println("The account has been closed!");
+                                System.out.println();
                             } else if (nextAction == 5) {
                                 System.out.println();
                                 bank.logOut();

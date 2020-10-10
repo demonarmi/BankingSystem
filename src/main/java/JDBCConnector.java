@@ -4,7 +4,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 
 public class JDBCConnector extends Main{
-
+/*
     public static void connect(String url) {
         Connection conn = null;
         try {
@@ -20,6 +20,10 @@ public class JDBCConnector extends Main{
                 System.out.println(ex.getMessage());
             }
         }
+    }*/
+
+    public static void connect(String url) throws SQLException {
+        Connection conn = DriverManager.getConnection(url);
     }
 
     public static void createTable(String url) {

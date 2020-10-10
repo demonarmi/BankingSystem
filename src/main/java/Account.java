@@ -48,26 +48,28 @@ public class Account extends Bank{
         System.out.println("Your card PIN:");
         Random rand = new Random();
         int generatedPIN = rand.nextInt(10000);
+        this.PIN = String.valueOf(generatedPIN).format("%04d", generatedPIN);
         //this.PIN = String.format("%04d%" + generatedPIN);
         //int min = 0000;
         //int max = 9999;
         //int random_int = (int) (Math.random() * (max - min + 1) + min);
         //int generatedPIN = random_int;
-        this.PIN = String.valueOf(generatedPIN).format("%04d", generatedPIN);
     }
     void addIncome(Account acc, double income, String url){
         acc.balance += income;
-        executeStatement("UPDATE cards SET balance = " + income + " where number =  " + acc.typedCardNumber, url);
+        JDBCConnector.executeStatement("UPDATE cards SET balance = " + income + " where number =  " + acc.typedCardNumber, url);
     }
-    void transferMoney(Bank bank){
+    void transferMoney(Account acc, String url){
         System.out.println("Enter card number: ");
         String transferAccount = scanner.nextLine();
         checkLuhn(transferAccount);
         if(checkLuhn(transferAccount) == true){
             System.out.println("Enter how much money you want to transfer: ");
             double moneyToTransfer = scanner.nextDouble();
-            if(bank.balance >= moneyToTransfer){
-                bank.balance -= moneyToTransfer;
+            if(acc.balance >= moneyToTransfer){
+                acc.balance = acc.balance - moneyToTransfer;
+                JDBCConnector.executeStatement("UPDATE cards SET balance = " + acc.balance + " WHERE number = " + acc.cardNumber, url);
+                JDBCConnector.executeStatement("UPDATE cards SET balance = balance + " + moneyToTransfer + " WHERE number = " + transferAccount, url);
                 System.out.println("Succes!");
                 System.out.println();
             }else {
@@ -76,6 +78,9 @@ public class Account extends Bank{
         }else if(checkLuhn(transferAccount) == false){
             System.out.println("Probably you made mistake in the card number. Please try again!");
         }
+    }
+    void closeAccount(Account acc, String url){
+        JDBCConnector.executeStatement("DELETE FROM cards WHERE number = " + acc.cardNumber, url);
     }
 }
 

@@ -1,13 +1,17 @@
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.Random;
 import java.util.Scanner;
 
-public class Bank extends JDBCConnector {
+public class Bank extends Main {
     final Scanner scanner = new Scanner(System.in);
     String menuAction;
     String typedPin;
     String typedCardNumber;
     double balance = 0;
+
 
 
     void setTypedPin(String pin) {
