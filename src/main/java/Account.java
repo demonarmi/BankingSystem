@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class Account extends Bank{
+public class Account extends Bank {
     String cardNumber;
     String PIN;
 
@@ -8,6 +8,7 @@ public class Account extends Bank{
         System.out.println("You have successfully logged out!");
         System.out.println();
     }
+
     void generateCardNumber(Account acc) {
         long IIN = 400000;
         long min = 100000000L;
@@ -19,9 +20,9 @@ public class Account extends Bank{
 
         int[] intArr = new int[cardNumberToCheck.length()];
         for (int i = 0; i < cardNumberToCheck.length(); i++) {
-            intArr[i] = Integer.parseInt(cardNumberToCheck.substring(i, i+1));
+            intArr[i] = Integer.parseInt(cardNumberToCheck.substring(i, i + 1));
         }
-        for (int i = intArr.length - 1; i >= 0; i = i - 2){
+        for (int i = intArr.length - 1; i >= 0; i = i - 2) {
             int j = intArr[i];
             j = j * 2;
 
@@ -44,6 +45,7 @@ public class Account extends Bank{
         String finalCardNumber = cardNumberToCheck + checksum;
         this.cardNumber = finalCardNumber;
     }
+
     void generatePinCode(Account acc) {
         System.out.println("Your card PIN:");
         Random rand = new Random();
@@ -55,31 +57,45 @@ public class Account extends Bank{
         //int random_int = (int) (Math.random() * (max - min + 1) + min);
         //int generatedPIN = random_int;
     }
-    void addIncome(Account acc, double income, String url){
+
+    void addIncome(Account acc, double income, String url) {
         acc.balance += income;
         JDBCConnector.executeStatement("UPDATE cards SET balance = " + income + " where number =  " + acc.typedCardNumber, url);
     }
-    void transferMoney(Account acc, String url){
+
+    void transferMoney(Account acc, String url) {
         System.out.println("Enter card number: ");
         String transferAccount = scanner.nextLine();
+
+        if (this.cardNumber.equals(transferAccount)) {
+            System.out.println("You can't transfer money to the same account!");
+            System.out.println();
+            return;
+        }
+
         checkLuhn(transferAccount);
-        if(checkLuhn(transferAccount) == true){
+
+        if (checkLuhn(transferAccount) == true) {
             System.out.println("Enter how much money you want to transfer: ");
             double moneyToTransfer = scanner.nextDouble();
-            if(acc.balance >= moneyToTransfer){
+            if (acc.balance >= moneyToTransfer) {
                 acc.balance = acc.balance - moneyToTransfer;
                 JDBCConnector.executeStatement("UPDATE cards SET balance = " + acc.balance + " WHERE number = " + acc.cardNumber, url);
                 JDBCConnector.executeStatement("UPDATE cards SET balance = balance + " + moneyToTransfer + " WHERE number = " + transferAccount, url);
                 System.out.println("Succes!");
                 System.out.println();
-            }else {
+                return;
+            } else {
                 System.out.println("Not enough money!");
+                return;
             }
-        }else if(checkLuhn(transferAccount) == false){
+        } else if (checkLuhn(transferAccount) == false) {
             System.out.println("Probably you made mistake in the card number. Please try again!");
+            return;
         }
     }
-    void closeAccount(Account acc, String url){
+
+    void closeAccount(Account acc, String url) {
         JDBCConnector.executeStatement("DELETE FROM cards WHERE number = " + acc.cardNumber, url);
     }
 }
