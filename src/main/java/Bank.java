@@ -1,3 +1,5 @@
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Scanner;
 
 public class Bank extends Main {
@@ -52,7 +54,8 @@ public class Bank extends Main {
         return (nSum % 10 == 0);
     }
 
-    void createAccount(Account acc, String url) {
+    void createAccount(Account acc, String url) throws SQLException {
+        Statement statement = JDBCConnector.connect(url).createStatement();
         acc.generateCardNumber(acc);
         System.out.println("Your card has been created");
         System.out.println("Your card number:");
@@ -60,7 +63,7 @@ public class Bank extends Main {
         acc.generatePinCode(acc);
         System.out.println(acc.PIN);
         System.out.println();
-        QueryExecutor.executeQuery("INSERT INTO card (number,pin,balance) VALUES(" + acc.cardNumber + "," + acc.PIN + "," + acc.balance + ")", url);
+        statement.executeUpdate("INSERT INTO card (number,pin,balance) VALUES(" + acc.cardNumber + "," + acc.PIN + "," + acc.balance + ")");
     }
 
     void validatePIN(Account acc) {

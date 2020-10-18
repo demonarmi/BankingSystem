@@ -56,9 +56,10 @@ public class Account extends Bank {
         this.PIN = String.valueOf(generatedPIN).format("%04d", generatedPIN);
     }
 
-    void addIncome(Account acc, double income, String url) {
+    void addIncome(Account acc, double income, String url) throws SQLException {
+        Statement statement = JDBCConnector.connect(url).createStatement();
         acc.balance += income;
-        QueryExecutor.executeQuery("UPDATE card SET balance = " + acc.balance + " where number =  " + acc.typedCardNumber, url);
+        statement.executeUpdate("UPDATE card SET balance = " + acc.balance + " where number =  " + acc.typedCardNumber);
     }
 
     void transferMoney(Account acc, String url) throws SQLException {
