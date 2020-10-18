@@ -1,8 +1,3 @@
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
-import java.util.Random;
 import java.util.Scanner;
 
 public class Bank extends Main {
@@ -65,8 +60,7 @@ public class Bank extends Main {
         acc.generatePinCode(acc);
         System.out.println(acc.PIN);
         System.out.println();
-        String sql = "INSERT INTO cards (number,pin,balance) VALUES(" + acc.cardNumber + "," + acc.PIN + "," + acc.balance + ")";
-        JDBCConnector.insert(sql, url);
+        QueryExecutor.executeQuery("INSERT INTO card (number,pin,balance) VALUES(" + acc.cardNumber + "," + acc.PIN + "," + acc.balance + ")", url);
     }
 
     void validatePIN(Account acc) {

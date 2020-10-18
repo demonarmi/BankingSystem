@@ -7,7 +7,12 @@ public class Main {
     public static void main(String[] args) throws SQLException {
         String url = "jdbc:sqlite:" + args[1];
         JDBCConnector.connect(url);
-        JDBCConnector.createTable(url);
+        QueryExecutor.executeQuery("CREATE TABLE IF NOT EXISTS card( " +
+                "id INTEGER PRIMARY KEY," +
+                "number TEXT," +
+                "pin TEXT," +
+                "balance INTEGER DEFAULT 0" + ");",url);
+
 
         final Scanner scanner = new Scanner(System.in);
         Bank bank = new Bank();

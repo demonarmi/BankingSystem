@@ -1,3 +1,6 @@
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Random;
 
 public class Account extends Bank {
@@ -51,43 +54,44 @@ public class Account extends Bank {
         Random rand = new Random();
         int generatedPIN = rand.nextInt(10000);
         this.PIN = String.valueOf(generatedPIN).format("%04d", generatedPIN);
-        //this.PIN = String.format("%04d%" + generatedPIN);
-        //int min = 0000;
-        //int max = 9999;
-        //int random_int = (int) (Math.random() * (max - min + 1) + min);
-        //int generatedPIN = random_int;
     }
 
     void addIncome(Account acc, double income, String url) {
         acc.balance += income;
-        JDBCConnector.executeStatement("UPDATE cards SET balance = " + income + " where number =  " + acc.typedCardNumber, url);
+        QueryExecutor.executeQuery("UPDATE card SET balance = " + acc.balance + " where number =  " + acc.typedCardNumber, url);
     }
 
-    void transferMoney(Account acc, String url) {
+    void transferMoney(Account acc, String url) throws SQLException {
         System.out.println("Enter card number: ");
         String transferAccount = scanner.nextLine();
-
-        if (this.cardNumber.equals(transferAccount)) {
-            System.out.println("You can't transfer money to the same account!");
-            System.out.println();
-            return;
-        }
-
+        Statement statement = JDBCConnector.connect(url).createStatement();
         checkLuhn(transferAccount);
+        ResultSet result = statement.executeQuery("SELECT number FROM card WHERE number = " + transferAccount + ";");
+        String transferAccountDB = result.getString("number");
 
-        if (checkLuhn(transferAccount) == true) {
-            System.out.println("Enter how much money you want to transfer: ");
-            double moneyToTransfer = scanner.nextDouble();
-            if (acc.balance >= moneyToTransfer) {
-                acc.balance = acc.balance - moneyToTransfer;
-                JDBCConnector.executeStatement("UPDATE cards SET balance = " + acc.balance + " WHERE number = " + acc.cardNumber, url);
-                JDBCConnector.executeStatement("UPDATE cards SET balance = balance + " + moneyToTransfer + " WHERE number = " + transferAccount, url);
-                System.out.println("Succes!");
+        if(checkLuhn(transferAccount) == true){
+            if (this.cardNumber.equals(transferAccount)) {
+                System.out.println("You can't transfer money to the same account!");
                 System.out.println();
                 return;
-            } else {
-                System.out.println("Not enough money!");
+            }else if (!transferAccount.equals(transferAccountDB)) {
+                System.out.println("This card does not exist!");
+                System.out.println();
                 return;
+            }else if(transferAccount.equals(transferAccountDB)){
+                System.out.println("Enter how much money you want to transfer: ");
+                double moneyToTransfer = scanner.nextDouble();
+                if (acc.balance >= moneyToTransfer) {
+                    acc.balance = acc.balance - moneyToTransfer;
+                    statement.executeUpdate("UPDATE card SET balance = " + acc.balance + " WHERE number = " + acc.cardNumber + ";");
+                    statement.executeUpdate("UPDATE card SET balance = balance + " + moneyToTransfer + " WHERE number = " + transferAccount + ";");
+                    System.out.println("Succes!");
+                    System.out.println();
+                    return;
+                } else {
+                    System.out.println("Not enough money!");
+                    return;
+                }
             }
         } else if (checkLuhn(transferAccount) == false) {
             System.out.println("Probably you made mistake in the card number. Please try again!");
@@ -95,8 +99,10 @@ public class Account extends Bank {
         }
     }
 
-    void closeAccount(Account acc, String url) {
-        JDBCConnector.executeStatement("DELETE FROM cards WHERE number = " + acc.cardNumber, url);
+
+    void closeAccount(Account acc, String url) throws SQLException {
+        Statement statement = JDBCConnector.connect(url).createStatement();
+        statement.executeUpdate("DELETE FROM card WHERE number = " + acc.cardNumber);
     }
 }
 
