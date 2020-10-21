@@ -1,5 +1,3 @@
-
-import javax.swing.plaf.nimbus.State;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -26,10 +24,10 @@ public class Main {
                     bank.mainMenuCommands(bank);
                     break;
                 case "2":
-                    bank.validateCard(acc);
-                    bank.validatePIN(acc);
+                    boolean validateCard = bank.validateCard(acc, url);
+                    boolean validatePin = bank.validatePIN(acc, url);
                     int nextAction = 9;
-                    if (acc.typedCardNumber.equals(acc.cardNumber)  && acc.typedPin.equals(acc.PIN)) {
+                    if (validateCard  == true && validatePin == true) {
                         System.out.println("You have successfully logged in!");
                         System.out.println();
                         do {
@@ -67,7 +65,7 @@ public class Main {
                             }
                         } while (nextAction != 0);
                     } else {
-                        if (!acc.typedCardNumber.equals(acc.cardNumber)  || !acc.typedPin.equals(acc.PIN))
+                        if (validateCard == false  || validatePin == false)
                             System.out.println("Wrong card number or PIN!");
                         System.out.println();
                         bank.mainMenuCommands(bank);

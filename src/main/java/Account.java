@@ -12,7 +12,7 @@ public class Account extends Bank {
         System.out.println();
     }
 
-    void generateCardNumber(Account acc) {
+    void generateCardNumber() {
         long IIN = 400000;
         long min = 100000000L;
         long max = 999999999L;
@@ -49,7 +49,7 @@ public class Account extends Bank {
         this.cardNumber = finalCardNumber;
     }
 
-    void generatePinCode(Account acc) {
+    void generatePinCode() {
         System.out.println("Your card PIN:");
         Random rand = new Random();
         int generatedPIN = rand.nextInt(10000);
@@ -60,6 +60,7 @@ public class Account extends Bank {
         Statement statement = JDBCConnector.connect(url).createStatement();
         acc.balance += income;
         statement.executeUpdate("UPDATE card SET balance = " + acc.balance + " where number =  " + acc.typedCardNumber);
+        statement.close();
     }
 
     void transferMoney(Account acc, String url) throws SQLException {
@@ -98,12 +99,15 @@ public class Account extends Bank {
             System.out.println("Probably you made mistake in the card number. Please try again!");
             return;
         }
+        result.close();
+        statement.close();
     }
 
 
     void closeAccount(Account acc, String url) throws SQLException {
         Statement statement = JDBCConnector.connect(url).createStatement();
         statement.executeUpdate("DELETE FROM card WHERE number = " + acc.cardNumber);
+        statement.close();
     }
 }
 
