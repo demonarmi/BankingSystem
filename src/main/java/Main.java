@@ -15,19 +15,17 @@ public class Main {
 
         final Scanner scanner = new Scanner(System.in);
         Bank bank = new Bank();
-        Account acc = new Account();
+        //Account acc = new Account();
         bank.mainMenuCommands(bank);
         do {
             switch (bank.menuAction) {
                 case "1":
-                    acc.createAccount(acc, url);
+                    bank.createAccount(url);
                     bank.mainMenuCommands(bank);
                     break;
                 case "2":
-                    boolean validateCard = bank.validateCard(acc, url);
-                    boolean validatePin = bank.validatePIN(acc, url);
                     int nextAction = 9;
-                    if (validateCard  == true && validatePin == true) {
+                    if (bank.login(url) == true) {
                         System.out.println("You have successfully logged in!");
                         System.out.println();
                         do {
@@ -40,24 +38,25 @@ public class Main {
                             nextAction = scanner.nextInt();
                             if (nextAction == 1) {
                                 System.out.println();
-                                acc.checkBalance();
+                                //acc.checkBalance();
                             } else if (nextAction == 2) {
                                 System.out.println("Enter income: ");
-                                acc.addIncome(acc, scanner.nextDouble(), url);
+                                //acc.addIncome(acc, scanner.nextDouble(), url);
                                 System.out.println("Income was added!");
                                 System.out.println();
                             } else if (nextAction == 0) {
                                 bank.exit();
                             } else if (nextAction == 3) {
-                                acc.transferMoney(acc, url);
+                               // acc.transferMoney(acc, url);
                             } else if (nextAction == 4) {
-                                acc.closeAccount(acc, url);
+                               // acc.closeAccount(acc, url);
                                 System.out.println();
                                 System.out.println("The account has been closed!");
                                 System.out.println();
                             } else if (nextAction == 5) {
-                                System.out.println();
                                 bank.logOut();
+                                System.out.println("You have successfully logged out!");
+                                System.out.println();
                                 bank.mainMenuCommands(bank);
                                 break;
                             } else {
@@ -65,8 +64,8 @@ public class Main {
                             }
                         } while (nextAction != 0);
                     } else {
-                        if (validateCard == false  || validatePin == false)
-                            System.out.println("Wrong card number or PIN!");
+                        //if (!bank.login(url))
+                        System.out.println("Wrong card number or PIN!");
                         System.out.println();
                         bank.mainMenuCommands(bank);
                         break;

@@ -3,14 +3,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
-public class Account extends Bank {
+public class Account {
     String cardNumber;
     String PIN;
+    double balance = 0;
 
-    void logOut() {
-        System.out.println("You have successfully logged out!");
-        System.out.println();
-    }
+    Account(){ }
+    Account(String cardNumber, String PIN, double balance){}
+    Account(String cardNumber,String PIN){}
+
+
 
     void generateCardNumber() {
         long IIN = 400000;
@@ -55,15 +57,7 @@ public class Account extends Bank {
         int generatedPIN = rand.nextInt(10000);
         this.PIN = String.valueOf(generatedPIN).format("%04d", generatedPIN);
     }
-
-    void addIncome(Account acc, double income, String url) throws SQLException {
-        Statement statement = JDBCConnector.connect(url).createStatement();
-        acc.balance += income;
-        statement.executeUpdate("UPDATE card SET balance = " + acc.balance + " where number =  " + acc.typedCardNumber);
-        statement.close();
-    }
-
-    void transferMoney(Account acc, String url) throws SQLException {
+/*    void transferMoney(Account acc, String url) throws SQLException {
         System.out.println("Enter card number: ");
         String transferAccount = scanner.nextLine();
         Statement statement = JDBCConnector.connect(url).createStatement();
@@ -101,13 +95,10 @@ public class Account extends Bank {
         }
         result.close();
         statement.close();
-    }
-
-
+    }*/
     void closeAccount(Account acc, String url) throws SQLException {
         Statement statement = JDBCConnector.connect(url).createStatement();
         statement.executeUpdate("DELETE FROM card WHERE number = " + acc.cardNumber);
-        statement.close();
     }
 }
 
