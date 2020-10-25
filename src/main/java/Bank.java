@@ -1,4 +1,6 @@
 
+import javax.print.attribute.ResolutionSyntax;
+import javax.swing.plaf.nimbus.State;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -8,47 +10,20 @@ import java.util.Scanner;
 public class Bank {
     final Scanner scanner = new Scanner(System.in);
     String menuAction;
-    String typedPin;
-    String typedCardNumber;
+    String activeAccountPin;
+    String activeAccountCardNumber;
 
-
-    Account findAccount(String accountNumber, String url) throws SQLException {
-        String pin = "0000";
-        Account account = new Account(accountNumber,pin);
-        ResultSet rs = null;
-        try {
-            Statement statement = JDBCConnector.connect(url).createStatement();
-            rs = statement.executeQuery("SELECT number, pin FROM card WHERE number = " + accountNumber);
-            account.PIN = rs.getString("pin");
-            account.cardNumber = rs.getString("number");
-            return account;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return account;
+    public void setActiveAccountPin(String activeAccountPin) {
+        this.activeAccountPin = activeAccountPin;
     }
 
-    boolean login(String url) throws SQLException {
-        System.out.println("Enter your card number: ");
-        String typedCard = scanner.nextLine();
-        System.out.println("Enter your PIN:");
-        String typedPIN = scanner.nextLine();
-        Account targetAccount = findAccount(typedCard, url);
-        if (!targetAccount.cardNumber.equals(typedCard) || !targetAccount.PIN.equals(typedPIN)) {
-            return false;
-        } else if (targetAccount.cardNumber.equals(typedCard) || targetAccount.PIN.equals(typedPIN)) {
-            return true;
-        }
-        return false;
+    public void setActiveAccountCardNumber(String activeAccountCardNumber) {
+        this.activeAccountCardNumber = activeAccountCardNumber;
     }
 
-    void addIncome(double income, String url) throws SQLException {
-        Statement statement = JDBCConnector.connect(url).createStatement();
-
-        //balance += income;
-        //statement.executeUpdate("UPDATE card SET balance = " + balance + " where number =  " + cardNumber);
+    private void setMenuAction(String menuAction) {
+        this.menuAction = menuAction;
     }
-
 
     public String generateCardNumber() {
         long IIN = 400000;
@@ -95,16 +70,140 @@ public class Bank {
         return PIN;
     }
 
-    private void setMenuAction(String menuAction) {
-        this.menuAction = menuAction;
-    }
-
     void mainMenuCommands(Bank bank) {
         System.out.println("1. Create an account");
         System.out.println("2. Log into account");
         System.out.println("0. Exit");
         bank.setMenuAction(scanner.nextLine());
         System.out.println();
+    }
+
+    void logOut() {
+        System.out.println();
+    }
+
+    void exit() {
+        System.out.println("Bye!");
+        System.exit(0);
+    }
+
+    Account createAccount(String url) throws SQLException {
+        Account account = new Account();
+        Statement statement = null;
+        try {
+            statement = JDBCConnector.connect(url).createStatement();
+            account.cardNumber = generateCardNumber();
+            account.PIN = generatePinCode();
+            System.out.println("Your card has been created");
+            System.out.println("Your card number:");
+            System.out.println(account.cardNumber);
+            System.out.println("Your card PIN: ");
+            System.out.println(account.PIN);
+            System.out.println();
+            statement.executeUpdate("INSERT INTO card (number,pin,balance) VALUES(" + account.cardNumber + "," + account.PIN + "," + account.balance + ")");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        statement.close();
+        return account;
+    }
+
+    Account findAccount(String accountNumber, String url) throws SQLException {
+        Account account = new Account(null, null);
+        ResultSet rs = null;
+        Statement statement = null;
+        try {
+            statement = JDBCConnector.connect(url).createStatement();
+            rs = statement.executeQuery("SELECT number, pin FROM card WHERE number = " + accountNumber);
+            if (rs.next() == false) {
+                account.PIN = "0";
+                account.cardNumber = "0";
+                return account;
+            }
+            account.PIN = rs.getString("pin");
+            account.cardNumber = rs.getString("number");
+            return account;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            rs.close();
+            statement.close();
+        }
+        return account;
+    }
+
+    boolean login(String url) throws SQLException {
+        System.out.println("Enter your card number: ");
+        String typedCard = scanner.nextLine();
+        System.out.println("Enter your PIN:");
+        String typedPIN = scanner.nextLine();
+        Account targetAccount = findAccount(typedCard, url);
+        if (targetAccount == null) {
+            return false;
+        }
+        setActiveAccountCardNumber(targetAccount.cardNumber);
+        setActiveAccountPin(targetAccount.PIN);
+        if (targetAccount == null) {
+            return false;
+        }
+        if (!targetAccount.cardNumber.equals(typedCard) || !targetAccount.PIN.equals(typedPIN)) {
+            return false;
+        } else if (targetAccount.cardNumber.equals(typedCard) && targetAccount.PIN.equals(typedPIN)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    void addIncome(double income, String url) throws SQLException {
+        ResultSet rs = null;
+        Statement statement = null;
+        try {
+            statement = JDBCConnector.connect(url).createStatement();
+            rs = statement.executeQuery("SELECT number, balance FROM card where number = " + this.activeAccountCardNumber);
+            double accountBalance = rs.getDouble("balance");
+            rs.close();
+            accountBalance += income;
+            statement.executeUpdate("UPDATE card SET balance = " + accountBalance + " where number =  " + this.activeAccountCardNumber);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            rs.close();
+            statement.close();
+        }
+    }
+
+    void checkBalance(String url) throws SQLException {
+        Statement statement = null;
+        ResultSet rs = null;
+        double accountBalance = 0;
+        try {
+            statement = JDBCConnector.connect(url).createStatement();
+            rs = statement.executeQuery("SELECT balance FROM card where number = " + this.activeAccountCardNumber);
+            accountBalance = rs.getDouble("balance");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            rs.close();
+            statement.close();
+        }
+
+        System.out.println("Balance: " + accountBalance);
+        System.out.println();
+    }
+
+    void closeAccount(String url) throws SQLException {
+        Statement statement = null;
+        try {
+            statement = JDBCConnector.connect(url).createStatement();
+            statement.executeUpdate("DELETE FROM card WHERE number = " + this.activeAccountCardNumber);
+            setActiveAccountPin(null);
+            setActiveAccountCardNumber(null);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            statement.close();
+        }
     }
 
     static boolean checkLuhn(String cardNo) {
@@ -122,107 +221,52 @@ public class Bank {
         return (nSum % 10 == 0);
     }
 
-    Account createAccount(String url) throws SQLException {
-        Account account = new Account();
-        Statement statement = null;
-        try {
-            statement = JDBCConnector.connect(url).createStatement();
-            account.cardNumber = generateCardNumber();
-            account.PIN = generatePinCode();
-            System.out.println("Your card has been created");
-            System.out.println("Your card number:");
-            System.out.println(account.cardNumber);
-            System.out.println("Your card PIN: ");
-            System.out.println(account.PIN);
-            System.out.println();
-            statement.executeUpdate("INSERT INTO card (number,pin,balance) VALUES(" + account.cardNumber + "," + account.PIN + "," + account.balance + ")");
-            //return account;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        statement.close();
-        return account;
-    }
+    void doTransfer(String url) throws SQLException {
+        ResultSet rs = null;
+        String cardNumberToTransfer;
+        double moneyToTransfer = 0;
+        double accountBalance = 0;
+        try (Statement statement = JDBCConnector.connect(url).createStatement()) {
+            System.out.println("Enter card number: ");
+            cardNumberToTransfer = scanner.nextLine();
+            if (checkLuhn(cardNumberToTransfer) == false) {
+                System.out.println("Probably you made mistake in the card number. Please try again!");
+                System.out.println();
+                return;
+            }
+            rs = statement.executeQuery("SELECT number from card where number = " + cardNumberToTransfer);
+            if (rs.next() == false) {
+                System.out.println("Such a card does not exist.");
+                System.out.println();
+                rs.close();
+                return;
+            } else if (rs.getString("number").equals(this.activeAccountCardNumber)) {
+                System.out.println("You can't transfer money to the same account!");
+                System.out.println();
+                rs.close();
+                return;
+            } else {
+                System.out.println("Enter how much money you want to transfer: ");
+                moneyToTransfer = scanner.nextDouble();
+                rs.close();
+                rs = statement.executeQuery("SELECT balance from card where number = " + this.activeAccountCardNumber);
+                accountBalance = rs.getDouble("balance");
+                rs.close();
 
-    /*boolean validatePIN(Account acc, String url) throws SQLException {
-        try {
-            Statement statement = JDBCConnector.connect(url).createStatement();
-            System.out.println("Enter your PIN:");
-            String typedPIN = scanner.nextLine();
-            ResultSet result = statement.executeQuery("SELECT pin FROM card WHERE pin = " + typedPIN + ";");
-            acc.PIN = result.getString("pin");
-
-            result.close();
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if(acc.PIN.equals(typedPIN)){
-            return true;
-        } else {
-            return false;
-        }
-    }*/
-
-
-    //tu cos jest zjebane i namieszane
-    /*boolean validate(Account account, String url) throws SQLException {
-        Statement statement = null;
-        ResultSet resultCard = null;
-        ResultSet resultPIN = null;
-        try {
-            statement = JDBCConnector.connect(url).createStatement();
-            System.out.println("Enter your card number: ");
-            String typedCard = account.cardNumber;
-            resultCard = statement.executeQuery("SELECT number FROM card WHERE number = " + typedCard);
-            System.out.println("Enter your PIN:");
-            String typedPIN = account.PIN;
-            Account targetAccount = findAccount(typedCard, typedPIN, url);
-            resultPIN = statement.executeQuery("SELECT pin FROM card WHERE pin = " + typedPIN + ";" + "AND number = " + typedCard);
-            if (resultCard.getString("number").equals(targetAccount.cardNumber) && resultPIN.getString("pin").equals(targetAccount.PIN)) {
-                return true;
+                if (accountBalance >= moneyToTransfer) {
+                    statement.executeUpdate("UPDATE card SET balance = balance + " + moneyToTransfer + " where number = " + cardNumberToTransfer);
+                    statement.executeUpdate("UPDATE card SET balance = balance - " + moneyToTransfer + " where number = " + this.activeAccountCardNumber);
+                    System.out.println("Succes!");
+                } else {
+                    System.out.println("Not enough money!");
+                }
+                System.out.println();
+                rs.close();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            statement.close();
-            resultCard.close();
-            resultPIN.close();
         }
-        return false;
-    }*/
-
-
-    /*boolean validateCard(Account acc, String url) throws SQLException {
-        try {
-            Statement statement = JDBCConnector.connect(url).createStatement();
-            System.out.println("Enter your card number:");
-            String typedCard = scanner.nextLine();
-            ResultSet result = statement.executeQuery("SELECT number FROM card WHERE number = " + typedCard);
-            acc.setTypedCardNumber(result.getString("number"));
-            result.close();
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if (acc.typedCardNumber.equals(acc.cardNumber)){
-            return true;
-        }else{
-        return false;
-        }
-    }*/
-
-   /*void checkBalance() {
-        System.out.println("Balance: " + balance);
-        System.out.println();
-    }*/
-
-    void logOut() {
-        System.out.println();
-    }
-
-    void exit() {
-        System.out.println("Bye!");
-        System.exit(0);
+        rs.close();
+        return;
     }
 }

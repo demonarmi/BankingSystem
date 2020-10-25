@@ -1,9 +1,11 @@
 import java.sql.*;
 import java.util.Scanner;
 
+
 public class Main {
     public static void main(String[] args) throws SQLException {
-        String url = "jdbc:sqlite:" + args[1];
+        final Scanner scanner = new Scanner(System.in);
+        final String url = "jdbc:sqlite:" + args[1];
         JDBCConnector.connect(url);
         Statement statement = JDBCConnector.connect(url).createStatement();
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS card( " +
@@ -13,9 +15,7 @@ public class Main {
                 "balance INTEGER DEFAULT 0" + ");");
 
 
-        final Scanner scanner = new Scanner(System.in);
         Bank bank = new Bank();
-        //Account acc = new Account();
         bank.mainMenuCommands(bank);
         do {
             switch (bank.menuAction) {
@@ -37,34 +37,36 @@ public class Main {
                             System.out.println("0. Exit");
                             nextAction = scanner.nextInt();
                             if (nextAction == 1) {
+                                bank.checkBalance(url);
                                 System.out.println();
-                                //acc.checkBalance();
                             } else if (nextAction == 2) {
                                 System.out.println("Enter income: ");
-                                //acc.addIncome(acc, scanner.nextDouble(), url);
+                                bank.addIncome(scanner.nextDouble(), url);
                                 System.out.println("Income was added!");
                                 System.out.println();
-                            } else if (nextAction == 0) {
-                                bank.exit();
                             } else if (nextAction == 3) {
-                               // acc.transferMoney(acc, url);
+                                bank.doTransfer(url);
                             } else if (nextAction == 4) {
-                               // acc.closeAccount(acc, url);
+                                bank.closeAccount(url);
                                 System.out.println();
                                 System.out.println("The account has been closed!");
                                 System.out.println();
+                                bank.mainMenuCommands(bank);
+                                break;
                             } else if (nextAction == 5) {
                                 bank.logOut();
                                 System.out.println("You have successfully logged out!");
                                 System.out.println();
-                                bank.mainMenuCommands(bank);
+                                //bank.mainMenuCommands(bank);
                                 break;
+                            } else if (nextAction == 0) {
+                                bank.exit();
                             } else {
                                 System.out.println("ERROR");
+                                break;
                             }
                         } while (nextAction != 0);
                     } else {
-                        //if (!bank.login(url))
                         System.out.println("Wrong card number or PIN!");
                         System.out.println();
                         bank.mainMenuCommands(bank);
