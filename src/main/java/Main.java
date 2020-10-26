@@ -46,6 +46,7 @@ public class Main {
                                 System.out.println();
                             } else if (nextAction == 3) {
                                 bank.doTransfer(url);
+                                System.out.println();
                             } else if (nextAction == 4) {
                                 bank.closeAccount(url);
                                 System.out.println();

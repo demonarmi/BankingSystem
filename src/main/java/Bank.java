@@ -1,6 +1,4 @@
 
-import javax.print.attribute.ResolutionSyntax;
-import javax.swing.plaf.nimbus.State;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -8,7 +6,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Bank {
-    final Scanner scanner = new Scanner(System.in);
+    Scanner scanner = new Scanner(System.in);
     String menuAction;
     String activeAccountPin;
     String activeAccountCardNumber;
@@ -49,9 +47,13 @@ public class Bank {
         }
 
         int sum = 0;
-        for (int i = 0; i < intArr.length; i++) {
-            sum += intArr[i];
+        for (int j : intArr) {
+            sum += j;
         }
+
+       /* for (int i = 0; i < intArr.length; i++) {
+            sum += intArr[i];
+        }*/
 
         if (sum % 10 != 0) {
             checksum = (10 - sum % 10) % 10;
@@ -193,16 +195,12 @@ public class Bank {
     }
 
     void closeAccount(String url) throws SQLException {
-        Statement statement = null;
-        try {
-            statement = JDBCConnector.connect(url).createStatement();
+        try (Statement statement = JDBCConnector.connect(url).createStatement()) {
             statement.executeUpdate("DELETE FROM card WHERE number = " + this.activeAccountCardNumber);
             setActiveAccountPin(null);
             setActiveAccountCardNumber(null);
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            statement.close();
         }
     }
 
@@ -212,7 +210,7 @@ public class Bank {
         boolean isSecond = false;
         for (int i = nDigits - 1; i >= 0; i--) {
             int d = cardNo.charAt(i) - '0';
-            if (isSecond == true)
+            if (isSecond)
                 d = d * 2;
             nSum += d / 10;
             nSum += d % 10;
@@ -221,21 +219,18 @@ public class Bank {
         return (nSum % 10 == 0);
     }
 
-    void doTransfer(String url) throws SQLException {
-        ResultSet rs = null;
-        String cardNumberToTransfer;
-        double moneyToTransfer = 0;
-        double accountBalance = 0;
+    void doTransfer(String url) throws SQLException{
         try (Statement statement = JDBCConnector.connect(url).createStatement()) {
+            ResultSet rs;
             System.out.println("Enter card number: ");
-            cardNumberToTransfer = scanner.nextLine();
-            if (checkLuhn(cardNumberToTransfer) == false) {
+            String cardNumberToTransfer = scanner.next();
+            if (!checkLuhn(cardNumberToTransfer)) {
                 System.out.println("Probably you made mistake in the card number. Please try again!");
                 System.out.println();
                 return;
             }
             rs = statement.executeQuery("SELECT number from card where number = " + cardNumberToTransfer);
-            if (rs.next() == false) {
+            if (!rs.next()) {
                 System.out.println("Such a card does not exist.");
                 System.out.println();
                 rs.close();
@@ -247,10 +242,10 @@ public class Bank {
                 return;
             } else {
                 System.out.println("Enter how much money you want to transfer: ");
-                moneyToTransfer = scanner.nextDouble();
+                double moneyToTransfer = scanner.nextDouble();
                 rs.close();
                 rs = statement.executeQuery("SELECT balance from card where number = " + this.activeAccountCardNumber);
-                accountBalance = rs.getDouble("balance");
+                double accountBalance = rs.getDouble("balance");
                 rs.close();
 
                 if (accountBalance >= moneyToTransfer) {
@@ -262,11 +257,11 @@ public class Bank {
                 }
                 System.out.println();
                 rs.close();
+                statement.close();
             }
-        } catch (SQLException e) {
+        } catch (SQLException e){
             e.printStackTrace();
         }
-        rs.close();
         return;
     }
 }
